@@ -29,7 +29,7 @@ import { makeStyles } from "@material-ui/core";
 
 // ======== Importación de funciones para interacción con API ======== //
 import {getUserSubjects} from '../../../api/subjects';
-import { modifyUserTask } from '../../../api/tasks';
+import { modifyUserTask, removeUserTask } from '../../../api/tasks';
 
 const priorityIcons = {
     1: {
@@ -66,7 +66,23 @@ const useStyles = makeStyles((theme) => ({
     }
   }));
 
-const DetailReadOnly = ({task}) => {
+const DetailReadOnly = ({task, loadTaskList, setOpenTaskDetail}) => {
+    const [cookies, setCookies] = useCookies();
+
+    // Función para eliminar la tarea actual
+    const removeTask = async () => {
+      let response = await removeUserTask(cookies.currentUser, task.id, cookies.accessToken);
+
+      if (response.status === 200) {
+        loadTaskList();
+        setOpenTaskDetail(false);
+        toast.success(response.data.message);
+        
+      } else {
+        toast.error(response.data.message);
+      }
+
+    }
 
     return <>
         {task.description ? (
@@ -89,6 +105,10 @@ const DetailReadOnly = ({task}) => {
         <Typography style={{marginTop: '20px'}}><InfoIcon style={{color: '#0e4b50'}} /> <strong>Quedan {task.daysRemaining} días restantes para vencimiento de la tarea.</strong></Typography>
 
         <Typography style={{marginTop: '20px'}}><InfoIcon style={{color: '#0e4b50'}} /> <strong>Esta tarea tiene prioridad {priorityIcons[task.priority].label}</strong></Typography>
+
+        <Button onClick={removeTask} style={{marginTop: '10px'}} variant="contained" color="error">
+          Eliminar tarea
+        </Button>
 
     </>
 };
@@ -247,7 +267,7 @@ export default function TaskDetailDialog ({openTaskDetail, setOpenTaskDetail, ta
         <Dialog fullWidth open={openTaskDetail} onClose={() => { setOpenTaskDetail(false) }}>
         <DialogTitle className={classes.dialogTitle}>{task.title}</DialogTitle>
         <DialogContent>
-            {modifyDetail ? <DetailForm setOpenTaskDetail={setOpenTaskDetail} loadTaskList={loadTaskList} task={task} /> : <DetailReadOnly task={task} />}
+            {modifyDetail ? <DetailForm setOpenTaskDetail={setOpenTaskDetail} loadTaskList={loadTaskList} task={task} /> : <DetailReadOnly setOpenTaskDetail={setOpenTaskDetail} loadTaskList={loadTaskList} task={task} />}
         </DialogContent>
         <DialogActions>
             <Button variant="contained" color={modifyDetail ? 'error' : 'warning'} onClick={changeDetailMode}>

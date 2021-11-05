@@ -69,6 +69,8 @@ const addUserTask = async (currentUser, accessToken, formData) => {
                 return error.response;
             }
 
+            return error.response;
+
         }
         return undefined;
     }
@@ -114,8 +116,46 @@ const modifyUserTask = async (currentUser, accessToken, formData) => {
 
 }
 
+const removeUserTask = async (currentUser, taskId, accessToken) => {
+    if (currentUser === undefined || accessToken === undefined) {
+        window.location.replace('http://localhost:3000/signIn');
+        return;
+    }
+
+    let userId = currentUser.id;
+
+    try {
+        let response = await axios({
+            url: '/users/' + userId + '/tasks/' + taskId + '/',
+            method: 'DELETE',
+            headers: {
+                Authorization: accessToken
+            }
+        });
+
+        return response;
+
+    } catch (error) {
+        if (error.response) {
+            // Error enviado por la API
+            if (error.response.status === 401 || error.response.status === 403) {
+                window.location.replace('http://localhost:3000/signIn');
+            }
+
+            if (error.response.status === 404) {
+                return error.response;
+            }
+
+            return error.response;
+
+        }
+        return undefined;
+    }
+};
+
 export {
     getUserTaskList,
     addUserTask,
-    modifyUserTask
+    modifyUserTask,
+    removeUserTask
 };
